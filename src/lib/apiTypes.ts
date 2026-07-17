@@ -3,6 +3,7 @@ import type { Level } from "./questionGenerator";
 export interface StudentDto {
   id: string;
   name: string;
+  avatar: string | null;
   createdAt: string;
 }
 

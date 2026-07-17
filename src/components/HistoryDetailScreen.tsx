@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { TestRunDetailDto } from "@/lib/apiTypes";
+import { displayAvatar } from "@/lib/avatars";
 import QuestionBreakdownList, {
   type BreakdownItem,
 } from "./QuestionBreakdownList";
@@ -86,7 +87,10 @@ export default function HistoryDetailScreen({
         <p className="eyebrow">
           {LEVEL_LABEL[testRun.level] ?? testRun.level} · {formatDate(testRun.startedAt)}
         </p>
-        <h2 className="text-2xl m-0">{testRun.student.name}&apos;s Sprint</h2>
+        <h2 className="text-2xl m-0">
+          <span className="mr-1.5">{displayAvatar(testRun.student.avatar)}</span>
+          {testRun.student.name}&apos;s Sprint
+        </h2>
       </div>
 
       <div className="flex justify-center my-2 mb-5">

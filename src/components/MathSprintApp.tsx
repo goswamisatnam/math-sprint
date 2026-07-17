@@ -163,7 +163,9 @@ export default function MathSprintApp() {
           onViewHistory={handleViewHistoryFromPicker}
         />
       )}
-      {screen === "setup" && <SetupScreen onStart={handleStart} />}
+      {screen === "setup" && (
+        <SetupScreen student={student} onStart={handleStart} />
+      )}
       {screen === "quiz" && questions.length > 0 && (
         <QuizScreen
           questions={questions}

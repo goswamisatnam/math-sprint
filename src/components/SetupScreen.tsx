@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import type { Level } from "@/lib/questionGenerator";
+import type { StudentDto } from "@/lib/apiTypes";
+import { displayAvatar } from "@/lib/avatars";
 
 interface SetupScreenProps {
+  student?: StudentDto | null;
   onStart: (level: Level) => void;
 }
 
@@ -13,7 +16,7 @@ const LEVELS: { id: Level; label: string; sub: string }[] = [
   { id: "complex", label: "Complex", sub: "Full sprint" },
 ];
 
-export default function SetupScreen({ onStart }: SetupScreenProps) {
+export default function SetupScreen({ student, onStart }: SetupScreenProps) {
   const [level, setLevel] = useState<Level>("medium");
 
   return (
@@ -24,7 +27,9 @@ export default function SetupScreen({ onStart }: SetupScreenProps) {
           MATH <span className="text-track-red">SPRINT</span>
         </h1>
         <p className="m-0 text-navy-soft text-[15px]">
-          20 questions. Beat the clock, not just the problem.
+          {student
+            ? `Ready, ${displayAvatar(student.avatar)} ${student.name}? Beat the clock, not just the problem.`
+            : "20 questions. Beat the clock, not just the problem."}
         </p>
       </div>
 

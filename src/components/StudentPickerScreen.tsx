@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { StudentDto } from "@/lib/apiTypes";
+import { AVATAR_OPTIONS, displayAvatar } from "@/lib/avatars";
 
 interface StudentPickerScreenProps {
   onSelect: (student: StudentDto) => void;
@@ -15,6 +16,7 @@ export default function StudentPickerScreen({
   const [students, setStudents] = useState<StudentDto[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
+  const [newAvatar, setNewAvatar] = useState<string>(AVATAR_OPTIONS[0]);
   const [creating, setCreating] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -36,7 +38,7 @@ export default function StudentPickerScreen({
       const res = await fetch("/api/students", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name, avatar: newAvatar }),
       });
       if (!res.ok) throw new Error("Failed to create student");
       const student: StudentDto = await res.json();
@@ -94,12 +96,17 @@ export default function StudentPickerScreen({
                     : "border-line bg-cream"
                 }`}
               >
-                <span
-                  className={`font-display font-bold text-lg ${
-                    selectedId === s.id ? "text-track-red-deep" : "text-navy"
-                  }`}
-                >
-                  {s.name}
+                <span className="flex items-center gap-2.5">
+                  <span className="text-2xl leading-none">
+                    {displayAvatar(s.avatar)}
+                  </span>
+                  <span
+                    className={`font-display font-bold text-lg ${
+                      selectedId === s.id ? "text-track-red-deep" : "text-navy"
+                    }`}
+                  >
+                    {s.name}
+                  </span>
                 </span>
                 <button
                   type="button"
@@ -125,7 +132,7 @@ export default function StudentPickerScreen({
         <h3 className="text-[15px] uppercase tracking-[0.08em] mb-3.5 text-navy">
           Add a new name
         </h3>
-        <div className="flex gap-2.5 mb-6">
+        <div className="flex gap-2.5 mb-4">
           <input
             type="text"
             className="answer-input text-left text-lg font-display flex-1 min-w-0"
@@ -144,12 +151,35 @@ export default function StudentPickerScreen({
           </button>
         </div>
 
+        <p className="text-[12px] text-navy-soft font-display font-semibold mb-2">
+          Pick an avatar
+        </p>
+        <div className="grid grid-cols-8 gap-2 mb-6">
+          {AVATAR_OPTIONS.map((emoji) => (
+            <button
+              key={emoji}
+              type="button"
+              onClick={() => setNewAvatar(emoji)}
+              aria-label={`Choose avatar ${emoji}`}
+              className={`text-xl leading-none aspect-square rounded-[10px] border-2 flex items-center justify-center transition-all ${
+                newAvatar === emoji
+                  ? "border-track-red bg-[#FFF3EE] shadow-[inset_0_0_0_1px_var(--track-red)]"
+                  : "border-line bg-cream"
+              }`}
+            >
+              {emoji}
+            </button>
+          ))}
+        </div>
+
         <button
           className="btn"
           disabled={!selected}
           onClick={() => selected && onSelect(selected)}
         >
-          {selected ? `Start the race as ${selected.name} →` : "Pick a name to start"}
+          {selected
+            ? `Start the race as ${displayAvatar(selected.avatar)} ${selected.name} →`
+            : "Pick a name to start"}
         </button>
       </div>
     </div>

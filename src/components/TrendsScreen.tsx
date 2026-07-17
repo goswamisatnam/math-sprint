@@ -16,6 +16,7 @@ import type {
   StudentDto,
   TrendPointDto,
 } from "@/lib/apiTypes";
+import { displayAvatar } from "@/lib/avatars";
 
 interface TrendsScreenProps {
   student: StudentDto;
@@ -130,7 +131,10 @@ export default function TrendsScreen({ student, onBack }: TrendsScreenProps) {
     <div className="screen-fade">
       <div className="text-center mb-4.5">
         <p className="eyebrow">Progress Trends</p>
-        <h2 className="text-2xl m-0 mb-1">{student.name}&apos;s Speed Chart</h2>
+        <h2 className="text-2xl m-0 mb-1">
+          <span className="mr-1.5">{displayAvatar(student.avatar)}</span>
+          {student.name}&apos;s Speed Chart
+        </h2>
         <p className="m-0 text-[13px] text-navy-soft">
           Accuracy and answer speed by operation, over time.
         </p>
