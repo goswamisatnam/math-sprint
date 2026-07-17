@@ -58,3 +58,5 @@ export interface AchievementsDto {
   totalQuestionsAnswered: number;
   earnedBadgeIds: string[];
 }
+
+export type BestTimesDto = Partial<Record<ArithmeticOpKey, number>>;

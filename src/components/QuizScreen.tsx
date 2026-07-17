@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import CircularTimer from "./CircularTimer";
 import { OP_LABEL, OP_SYMBOL, type ArithmeticType } from "@/lib/questionGenerator";
 import { isArithmetic, type QuizQuestion } from "@/lib/quizTypes";
+import type { BestTimesDto } from "@/lib/apiTypes";
 import {
   playCorrect,
   playSubmit,
@@ -17,6 +18,7 @@ interface QuizScreenProps {
   questions: QuizQuestion[];
   currentIndex: number;
   level: string;
+  bestTimes?: BestTimesDto;
   onCommitAndAdvance: (
     index: number,
     answer: { userAnswer?: number | null; userAnswerParts?: (number | null)[] },
@@ -45,6 +47,7 @@ function QuizQuestionBody({
   questions,
   currentIndex,
   level,
+  bestTimes,
   onCommitAndAdvance,
 }: QuizScreenProps) {
   const q = questions[currentIndex];
@@ -179,8 +182,15 @@ function QuizQuestionBody({
       <div className="card px-6.5 pt-6.5 pb-6 text-center">
         {isArithmetic(q) ? (
           <>
-            <div className="q-op-badge inline-flex items-center gap-1.5 font-display font-bold text-xs uppercase tracking-[0.08em] text-navy-soft bg-cream rounded-full py-1 px-3 mb-3.5">
-              {OP_LABEL[q.type as ArithmeticType]}
+            <div className="flex items-center justify-center gap-2 mb-3.5 flex-wrap">
+              <div className="q-op-badge inline-flex items-center gap-1.5 font-display font-bold text-xs uppercase tracking-[0.08em] text-navy-soft bg-cream rounded-full py-1 px-3">
+                {OP_LABEL[q.type as ArithmeticType]}
+              </div>
+              {bestTimes?.[q.type as ArithmeticType] !== undefined && (
+                <div className="inline-flex items-center gap-1 font-display font-bold text-xs text-track-red-deep bg-[#FFF3EE] rounded-full py-1 px-3">
+                  ⏱️ Best: {Math.round(bestTimes[q.type as ArithmeticType]!)}s
+                </div>
+              )}
             </div>
             <div className="font-display font-bold text-[clamp(30px,7vw,42px)] text-navy mb-5.5 tracking-[0.01em]">
               {q.text} = ?

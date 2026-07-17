@@ -13,7 +13,7 @@ import SoundToggle from "./SoundToggle";
 import { buildQuestionSet } from "@/lib/buildQuestionSet";
 import { isArithmetic, type QuizQuestion } from "@/lib/quizTypes";
 import type { Level } from "@/lib/questionGenerator";
-import type { AchievementsDto, StudentDto } from "@/lib/apiTypes";
+import type { AchievementsDto, BestTimesDto, StudentDto } from "@/lib/apiTypes";
 
 type ScreenId =
   | "picker"
@@ -35,6 +35,7 @@ export default function MathSprintApp() {
   const [historyTestRunId, setHistoryTestRunId] = useState<string | null>(null);
   const [preTestBadgeIds, setPreTestBadgeIds] = useState<string[]>([]);
   const [newBadgeIds, setNewBadgeIds] = useState<string[]>([]);
+  const [bestTimes, setBestTimes] = useState<BestTimesDto>({});
 
   function handleSelectStudent(chosen: StudentDto) {
     setStudent(chosen);
@@ -57,6 +58,13 @@ export default function MathSprintApp() {
     setQuestions(buildQuestionSet(chosenLevel));
     setCurrentIndex(0);
     setScreen("quiz");
+    setBestTimes({});
+    if (student) {
+      fetch(`/api/students/${student.id}/best-times?level=${chosenLevel}`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data: BestTimesDto | null) => setBestTimes(data ?? {}))
+        .catch(() => setBestTimes({}));
+    }
   }
 
   function applyAnswer(
@@ -194,6 +202,7 @@ export default function MathSprintApp() {
           questions={questions}
           currentIndex={currentIndex}
           level={level}
+          bestTimes={bestTimes}
           onCommitAndAdvance={handleCommitAndAdvance}
         />
       )}
