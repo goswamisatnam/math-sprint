@@ -1,10 +1,15 @@
 "use client";
 
+import { useEffect } from "react";
 import { isArithmetic, type QuizQuestion } from "@/lib/quizTypes";
 import { scoreQuestions } from "@/lib/scoring";
+import { playEncouraging, playFanfare } from "@/lib/sound";
+import Confetti from "./Confetti";
 import QuestionBreakdownList, {
   type BreakdownItem,
 } from "./QuestionBreakdownList";
+
+const CELEBRATION_THRESHOLD_PCT = 80;
 
 interface ResultsScreenProps {
   questions: QuizQuestion[];
@@ -41,6 +46,7 @@ export default function ResultsScreen({
 }: ResultsScreenProps) {
   const { earned, total } = scoreQuestions(questions);
   const pct = Math.round((earned / total) * 100);
+  const celebrate = pct >= CELEBRATION_THRESHOLD_PCT;
 
   let tagline = "Nice effort out there!";
   if (pct === 100) tagline = "Photo finish — a perfect score!";
@@ -48,8 +54,18 @@ export default function ResultsScreen({
   else if (pct >= 50) tagline = "Good pace — keep training those laps.";
   else tagline = "Good start — practice will build your speed.";
 
+  useEffect(() => {
+    if (celebrate) {
+      playFanfare();
+    } else {
+      playEncouraging();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="screen-fade">
+      {celebrate && <Confetti />}
       <div className="flex justify-center my-2 mb-1.5">
         <div className="w-[150px] h-[150px] rounded-full bg-navy flex flex-col items-center justify-center text-white shadow-[0_14px_26px_rgba(23,33,59,0.25)] border-[6px] border-lane-yellow">
           <div className="font-timer font-bold text-[32px]">

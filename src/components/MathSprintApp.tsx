@@ -9,6 +9,7 @@ import ResultsScreen from "./ResultsScreen";
 import HistoryListScreen from "./HistoryListScreen";
 import HistoryDetailScreen from "./HistoryDetailScreen";
 import TrendsScreen from "./TrendsScreen";
+import SoundToggle from "./SoundToggle";
 import { buildQuestionSet } from "@/lib/buildQuestionSet";
 import { isArithmetic, type QuizQuestion } from "@/lib/quizTypes";
 import type { Level } from "@/lib/questionGenerator";
@@ -155,6 +156,7 @@ export default function MathSprintApp() {
 
   return (
     <div className="stage">
+      <SoundToggle />
       {screen === "picker" && (
         <StudentPickerScreen
           onSelect={handleSelectStudent}

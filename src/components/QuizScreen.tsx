@@ -4,6 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import CircularTimer from "./CircularTimer";
 import { OP_LABEL, OP_SYMBOL, type ArithmeticType } from "@/lib/questionGenerator";
 import { isArithmetic, type QuizQuestion } from "@/lib/quizTypes";
+import {
+  playCorrect,
+  playSubmit,
+  playTick,
+  playTimeout,
+  playUrgentTick,
+  playWrong,
+} from "@/lib/sound";
 
 interface QuizScreenProps {
   questions: QuizQuestion[];
@@ -18,6 +26,9 @@ interface QuizScreenProps {
 }
 
 const WORD_PROBLEM_BADGE = "Word Problem";
+const REVEAL_DELAY_MS = 700;
+
+type PartVerdict = "correct" | "wrong" | null;
 
 export default function QuizScreen(props: QuizScreenProps) {
   // Remount the question body whenever the lap changes so each question
@@ -47,8 +58,12 @@ function QuizQuestionBody({
       ? q.userAnswerParts.map((v) => (v !== null ? String(v) : ""))
       : [],
   );
+  const [revealing, setRevealing] = useState(false);
+  const [singleVerdict, setSingleVerdict] = useState<PartVerdict>(null);
+  const [partVerdicts, setPartVerdicts] = useState<PartVerdict[]>([]);
   const startedAtRef = useRef<number>(Date.now());
   const inputRef = useRef<HTMLInputElement>(null);
+  const submittedRef = useRef(false);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -66,6 +81,12 @@ function QuizQuestionBody({
   }, []);
 
   useEffect(() => {
+    if (revealing) return;
+    if (secondsLeft <= 3 && secondsLeft > 0) {
+      playUrgentTick();
+    } else if (secondsLeft <= 10 && secondsLeft > 3) {
+      playTick();
+    }
     if (secondsLeft === 0) {
       submit(true);
     }
@@ -80,25 +101,61 @@ function QuizQuestionBody({
   }
 
   function submit(isTimeout: boolean) {
+    if (submittedRef.current) return;
+    submittedRef.current = true;
     const spent = elapsedSeconds();
+    setRevealing(true);
+
     if (isArithmetic(q)) {
       const trimmed = singleValue.trim();
-      onCommitAndAdvance(
-        currentIndex,
-        { userAnswer: trimmed === "" ? null : parseInt(trimmed, 10) },
-        isTimeout,
-        spent,
-      );
+      const userAnswer = trimmed === "" ? null : parseInt(trimmed, 10);
+      const correct = userAnswer !== null && userAnswer === q.answer;
+
+      if (isTimeout && userAnswer === null) {
+        playTimeout();
+      } else {
+        (correct ? playCorrect : playWrong)();
+      }
+      setSingleVerdict(correct ? "correct" : "wrong");
+
+      window.setTimeout(() => {
+        onCommitAndAdvance(currentIndex, { userAnswer }, isTimeout, spent);
+      }, REVEAL_DELAY_MS);
     } else {
       const parts = partValues.map((v) =>
         v.trim() === "" ? null : parseInt(v.trim(), 10),
       );
-      onCommitAndAdvance(currentIndex, { userAnswerParts: parts }, isTimeout, spent);
+      const verdicts: PartVerdict[] = q.parts.map((part, i) =>
+        parts[i] !== null && parts[i] === part.answer ? "correct" : "wrong",
+      );
+      const anyFilled = parts.some((p) => p !== null);
+
+      if (isTimeout && !anyFilled) {
+        playTimeout();
+      } else {
+        const allCorrect = verdicts.every((v) => v === "correct");
+        (allCorrect ? playCorrect : playWrong)();
+      }
+      setPartVerdicts(verdicts);
+
+      window.setTimeout(() => {
+        onCommitAndAdvance(currentIndex, { userAnswerParts: parts }, isTimeout, spent);
+      }, REVEAL_DELAY_MS);
     }
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Enter") submit(false);
+  }
+
+  function inputVerdictClasses(verdict: PartVerdict): string {
+    if (verdict === "correct") {
+      return "!border-success !bg-success-soft";
+    }
+    if (verdict === "wrong") {
+      return "!border-danger !bg-danger-soft";
+    }
+    return "";
   }
 
   return (
@@ -133,10 +190,11 @@ function QuizQuestionBody({
               type="text"
               inputMode="numeric"
               pattern="[0-9]*"
-              className="answer-input mb-4.5"
+              className={`answer-input mb-4.5 transition-colors ${inputVerdictClasses(singleVerdict)}`}
               placeholder="Your answer"
               autoComplete="off"
               value={singleValue}
+              disabled={revealing}
               onChange={(e) => setSingleValue(e.target.value)}
               onKeyDown={handleKeyDown}
             />
@@ -160,10 +218,11 @@ function QuizQuestionBody({
                     type="text"
                     inputMode="numeric"
                     pattern="[0-9]*"
-                    className="answer-input"
+                    className={`answer-input transition-colors ${inputVerdictClasses(partVerdicts[i] ?? null)}`}
                     placeholder="?"
                     autoComplete="off"
                     value={partValues[i] ?? ""}
+                    disabled={revealing}
                     onChange={(e) => {
                       const next = [...partValues];
                       next[i] = e.target.value;
@@ -178,7 +237,14 @@ function QuizQuestionBody({
         )}
 
         <div className="flex gap-2.5">
-          <button className="btn" onClick={() => submit(false)}>
+          <button
+            className="btn"
+            disabled={revealing}
+            onClick={() => {
+              playSubmit();
+              submit(false);
+            }}
+          >
             Submit &amp; next lap →
           </button>
         </div>
