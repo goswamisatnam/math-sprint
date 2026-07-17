@@ -35,3 +35,19 @@ export interface TestRunDetailDto extends TestRunSummaryDto {
   student: StudentDto;
   questions: QuestionDto[];
 }
+
+export type ArithmeticOpKey = "add" | "sub" | "mul" | "div";
+
+export interface OpSummaryDto {
+  accuracyPct: number | null;
+  avgTimeSec: number | null;
+  count: number;
+}
+
+export interface TrendPointDto {
+  testRunId: string;
+  startedAt: string;
+  level: string;
+  ops: Record<ArithmeticOpKey, OpSummaryDto>;
+  wordProblems: OpSummaryDto;
+}

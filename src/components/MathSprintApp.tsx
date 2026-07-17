@@ -8,6 +8,7 @@ import ReviewScreen from "./ReviewScreen";
 import ResultsScreen from "./ResultsScreen";
 import HistoryListScreen from "./HistoryListScreen";
 import HistoryDetailScreen from "./HistoryDetailScreen";
+import TrendsScreen from "./TrendsScreen";
 import { buildQuestionSet } from "@/lib/buildQuestionSet";
 import { isArithmetic, type QuizQuestion } from "@/lib/quizTypes";
 import type { Level } from "@/lib/questionGenerator";
@@ -20,7 +21,8 @@ type ScreenId =
   | "review"
   | "results"
   | "history-list"
-  | "history-detail";
+  | "history-detail"
+  | "trends";
 
 export default function MathSprintApp() {
   const [screen, setScreen] = useState<ScreenId>("picker");
@@ -143,6 +145,14 @@ export default function MathSprintApp() {
     setScreen("history-list");
   }
 
+  function handleViewTrends() {
+    setScreen("trends");
+  }
+
+  function handleBackFromTrends() {
+    setScreen("history-list");
+  }
+
   return (
     <div className="stage">
       {screen === "picker" && (
@@ -179,6 +189,7 @@ export default function MathSprintApp() {
           student={historyStudent}
           onBack={handleBackFromHistoryList}
           onOpenTestRun={handleOpenTestRun}
+          onViewTrends={handleViewTrends}
         />
       )}
       {screen === "history-detail" && historyTestRunId && (
@@ -186,6 +197,9 @@ export default function MathSprintApp() {
           testRunId={historyTestRunId}
           onBack={handleBackFromHistoryDetail}
         />
+      )}
+      {screen === "trends" && historyStudent && (
+        <TrendsScreen student={historyStudent} onBack={handleBackFromTrends} />
       )}
     </div>
   );

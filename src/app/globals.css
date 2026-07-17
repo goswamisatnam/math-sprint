@@ -14,6 +14,16 @@
   --danger-soft: #fbe7e8;
   --line: rgba(23, 33, 59, 0.12);
   --shadow: 0 12px 30px rgba(23, 33, 59, 0.1);
+
+  /* validated categorical chart palette (dataviz skill, 4-slot, light mode) */
+  --series-add: #2a78d6;
+  --series-sub: #008300;
+  --series-mul: #e87ba4;
+  --series-div: #eda100;
+  --chart-grid: #e1e0d9;
+  --chart-axis: #c3c2b7;
+  --chart-ink-secondary: #52514e;
+  --chart-ink-muted: #898781;
 }
 
 @theme inline {

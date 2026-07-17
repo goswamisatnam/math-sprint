@@ -7,6 +7,7 @@ interface HistoryListScreenProps {
   student: StudentDto;
   onBack: () => void;
   onOpenTestRun: (testRunId: string) => void;
+  onViewTrends: () => void;
 }
 
 const LEVEL_LABEL: Record<string, string> = {
@@ -30,6 +31,7 @@ export default function HistoryListScreen({
   student,
   onBack,
   onOpenTestRun,
+  onViewTrends,
 }: HistoryListScreenProps) {
   const [runs, setRuns] = useState<TestRunSummaryDto[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -98,7 +100,12 @@ export default function HistoryListScreen({
         )}
       </div>
 
-      <div className="mt-5">
+      <div className="mt-5 flex flex-col gap-2.5">
+        {runs !== null && runs.length > 0 && (
+          <button className="btn" onClick={onViewTrends}>
+            View progress trends →
+          </button>
+        )}
         <button className="btn secondary" onClick={onBack}>
           ← Back to student picker
         </button>
