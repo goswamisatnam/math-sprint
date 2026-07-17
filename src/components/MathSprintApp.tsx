@@ -13,7 +13,7 @@ import SoundToggle from "./SoundToggle";
 import { buildQuestionSet } from "@/lib/buildQuestionSet";
 import { isArithmetic, type QuizQuestion } from "@/lib/quizTypes";
 import type { Level } from "@/lib/questionGenerator";
-import type { StudentDto } from "@/lib/apiTypes";
+import type { AchievementsDto, StudentDto } from "@/lib/apiTypes";
 
 type ScreenId =
   | "picker"
@@ -33,10 +33,18 @@ export default function MathSprintApp() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [historyStudent, setHistoryStudent] = useState<StudentDto | null>(null);
   const [historyTestRunId, setHistoryTestRunId] = useState<string | null>(null);
+  const [preTestBadgeIds, setPreTestBadgeIds] = useState<string[]>([]);
+  const [newBadgeIds, setNewBadgeIds] = useState<string[]>([]);
 
   function handleSelectStudent(chosen: StudentDto) {
     setStudent(chosen);
     setScreen("setup");
+    fetch(`/api/students/${chosen.id}/achievements`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: AchievementsDto | null) => {
+        setPreTestBadgeIds(data?.earnedBadgeIds ?? []);
+      })
+      .catch(() => setPreTestBadgeIds([]));
   }
 
   function handleViewHistoryFromPicker(chosen: StudentDto) {
@@ -107,6 +115,7 @@ export default function MathSprintApp() {
 
   function handleFinalSubmit() {
     setScreen("results");
+    setNewBadgeIds([]);
     fetch("/api/test-runs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -115,9 +124,23 @@ export default function MathSprintApp() {
         level,
         questions,
       }),
-    }).catch((err) => {
-      console.error("Failed to save test run", err);
-    });
+    })
+      .then(() => {
+        if (!student) return null;
+        return fetch(`/api/students/${student.id}/achievements`).then((res) =>
+          res.ok ? res.json() : null,
+        );
+      })
+      .then((data: AchievementsDto | null) => {
+        if (!data) return;
+        const fresh = data.earnedBadgeIds.filter(
+          (id) => !preTestBadgeIds.includes(id),
+        );
+        setNewBadgeIds(fresh);
+      })
+      .catch((err) => {
+        console.error("Failed to save test run", err);
+      });
   }
 
   function handleRestart() {
@@ -186,6 +209,7 @@ export default function MathSprintApp() {
           questions={questions}
           onRestart={handleRestart}
           onViewHistory={student ? handleViewHistoryFromResults : undefined}
+          newBadgeIds={newBadgeIds}
         />
       )}
       {screen === "history-list" && historyStudent && (

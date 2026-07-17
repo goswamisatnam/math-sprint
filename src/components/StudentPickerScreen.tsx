@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { StudentDto } from "@/lib/apiTypes";
 import { AVATAR_OPTIONS, displayAvatar } from "@/lib/avatars";
+import StreakBadge from "./StreakBadge";
 
 interface StudentPickerScreenProps {
   onSelect: (student: StudentDto) => void;
@@ -107,6 +108,7 @@ export default function StudentPickerScreen({
                   >
                     {s.name}
                   </span>
+                  <StreakBadge studentId={s.id} />
                 </span>
                 <button
                   type="button"

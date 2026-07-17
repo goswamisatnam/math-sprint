@@ -52,3 +52,9 @@ export interface TrendPointDto {
   ops: Record<ArithmeticOpKey, OpSummaryDto>;
   wordProblems: OpSummaryDto;
 }
+
+export interface AchievementsDto {
+  streak: number;
+  totalQuestionsAnswered: number;
+  earnedBadgeIds: string[];
+}

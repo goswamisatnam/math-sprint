@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { StudentDto, TestRunSummaryDto } from "@/lib/apiTypes";
 import { displayAvatar } from "@/lib/avatars";
+import BadgeShelf from "./BadgeShelf";
 
 interface HistoryListScreenProps {
   student: StudentDto;
@@ -59,6 +60,8 @@ export default function HistoryListScreen({
           Every completed sprint, most recent first.
         </p>
       </div>
+
+      <BadgeShelf studentId={student.id} />
 
       <div className="card px-5.5 pt-5.5 pb-6">
         {error && <p className="text-[13px] text-danger mb-3.5">{error}</p>}
