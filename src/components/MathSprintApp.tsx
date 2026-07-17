@@ -80,6 +80,13 @@ export default function MathSprintApp() {
 
   function handleFinalSubmit() {
     setScreen("results");
+    fetch("/api/test-runs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ studentName: "Default", level, questions }),
+    }).catch((err) => {
+      console.error("Failed to save test run", err);
+    });
   }
 
   function handleRestart() {

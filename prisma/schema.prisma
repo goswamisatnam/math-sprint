@@ -1,0 +1,73 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Level {
+  easy
+  medium
+  complex
+}
+
+enum QuestionKind {
+  arithmetic
+  word
+}
+
+enum QuestionStatus {
+  answered
+  timeout
+  pending
+}
+
+model Student {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  createdAt DateTime  @default(now())
+  testRuns  TestRun[]
+}
+
+model TestRun {
+  id             String     @id @default(cuid())
+  student        Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId      String
+  level          Level
+  startedAt      DateTime   @default(now())
+  completedAt    DateTime?
+  scoreEarned    Int
+  scoreTotal     Int
+  totalQuestions Int
+  questions      Question[]
+
+  @@index([studentId])
+}
+
+model Question {
+  id            String         @id @default(cuid())
+  testRun       TestRun        @relation(fields: [testRunId], references: [id], onDelete: Cascade)
+  testRunId     String
+  order         Int
+  kind          QuestionKind
+  type          String // arithmetic op (add|sub|mul|div) or word-problem template id
+  promptText    String
+  timeLimitSec  Int
+  timeSpentSec  Int?
+  status        QuestionStatus
+
+  // single-answer arithmetic questions
+  correctAnswer Int?
+  userAnswer    Int?
+
+  // multi-part word-problem questions
+  answerParts     Json?
+  userAnswerParts Json?
+
+  @@index([testRunId])
+}
