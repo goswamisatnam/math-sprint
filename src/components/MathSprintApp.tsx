@@ -1,21 +1,45 @@
 "use client";
 
 import { useState } from "react";
+import StudentPickerScreen from "./StudentPickerScreen";
 import SetupScreen from "./SetupScreen";
 import QuizScreen from "./QuizScreen";
 import ReviewScreen from "./ReviewScreen";
 import ResultsScreen from "./ResultsScreen";
+import HistoryListScreen from "./HistoryListScreen";
+import HistoryDetailScreen from "./HistoryDetailScreen";
 import { buildQuestionSet } from "@/lib/buildQuestionSet";
 import { isArithmetic, type QuizQuestion } from "@/lib/quizTypes";
 import type { Level } from "@/lib/questionGenerator";
+import type { StudentDto } from "@/lib/apiTypes";
 
-type ScreenId = "setup" | "quiz" | "review" | "results";
+type ScreenId =
+  | "picker"
+  | "setup"
+  | "quiz"
+  | "review"
+  | "results"
+  | "history-list"
+  | "history-detail";
 
 export default function MathSprintApp() {
-  const [screen, setScreen] = useState<ScreenId>("setup");
+  const [screen, setScreen] = useState<ScreenId>("picker");
+  const [student, setStudent] = useState<StudentDto | null>(null);
   const [level, setLevel] = useState<Level>("medium");
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [historyStudent, setHistoryStudent] = useState<StudentDto | null>(null);
+  const [historyTestRunId, setHistoryTestRunId] = useState<string | null>(null);
+
+  function handleSelectStudent(chosen: StudentDto) {
+    setStudent(chosen);
+    setScreen("setup");
+  }
+
+  function handleViewHistoryFromPicker(chosen: StudentDto) {
+    setHistoryStudent(chosen);
+    setScreen("history-list");
+  }
 
   function handleStart(chosenLevel: Level) {
     setLevel(chosenLevel);
@@ -83,7 +107,11 @@ export default function MathSprintApp() {
     fetch("/api/test-runs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ studentName: "Default", level, questions }),
+      body: JSON.stringify({
+        studentName: student?.name ?? "Default",
+        level,
+        questions,
+      }),
     }).catch((err) => {
       console.error("Failed to save test run", err);
     });
@@ -93,8 +121,36 @@ export default function MathSprintApp() {
     setScreen("setup");
   }
 
+  function handleViewHistoryFromResults() {
+    if (student) {
+      setHistoryStudent(student);
+      setScreen("history-list");
+    }
+  }
+
+  function handleBackFromHistoryList() {
+    setHistoryStudent(null);
+    setScreen("picker");
+  }
+
+  function handleOpenTestRun(testRunId: string) {
+    setHistoryTestRunId(testRunId);
+    setScreen("history-detail");
+  }
+
+  function handleBackFromHistoryDetail() {
+    setHistoryTestRunId(null);
+    setScreen("history-list");
+  }
+
   return (
     <div className="stage">
+      {screen === "picker" && (
+        <StudentPickerScreen
+          onSelect={handleSelectStudent}
+          onViewHistory={handleViewHistoryFromPicker}
+        />
+      )}
       {screen === "setup" && <SetupScreen onStart={handleStart} />}
       {screen === "quiz" && questions.length > 0 && (
         <QuizScreen
@@ -112,7 +168,24 @@ export default function MathSprintApp() {
         />
       )}
       {screen === "results" && (
-        <ResultsScreen questions={questions} onRestart={handleRestart} />
+        <ResultsScreen
+          questions={questions}
+          onRestart={handleRestart}
+          onViewHistory={student ? handleViewHistoryFromResults : undefined}
+        />
+      )}
+      {screen === "history-list" && historyStudent && (
+        <HistoryListScreen
+          student={historyStudent}
+          onBack={handleBackFromHistoryList}
+          onOpenTestRun={handleOpenTestRun}
+        />
+      )}
+      {screen === "history-detail" && historyTestRunId && (
+        <HistoryDetailScreen
+          testRunId={historyTestRunId}
+          onBack={handleBackFromHistoryDetail}
+        />
       )}
     </div>
   );
